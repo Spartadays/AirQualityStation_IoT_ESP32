@@ -48,6 +48,6 @@ timer_0.init(mode=Timer.ONE_SHOT, period=2000, callback=handle_timer_0)  # wait 
 print("STARTED")
 while True:
     led.value(1)
-    sleep(0.1)
+    sleep(0.03)
     led.value(0)
-    sleep(0.1)
+    sleep(0.03)
