@@ -1,9 +1,8 @@
+# pms7003.py
 try:
     from machine import UART
-    import utime
 except ImportError as i_err:
     print(i_err)
-    exit(-1)
     
 # COMMANDS:
 active = "active"
@@ -29,7 +28,8 @@ DATA_12 = NUM_OF_PAR_10_UM_IN_0_1_L_OF_AIR = 11  # Number of particles with diam
 class PMS7003():
     """PMS7003 air quality sensor class"""
     def __init__(self, uart_num=None, rx=None, tx=None):
-        """Create PMS7003 sensor object on given UART pins"""
+        """Create PMS7003 sensor object on given UART pins.
+        Default is UART1, rx: 21, tx: 22"""
         if uart_num is None or not isinstance(uart_num, int):
             self.uart_num = 1
         else:
