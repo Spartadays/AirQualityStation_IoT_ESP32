@@ -4,7 +4,7 @@ try:
     import sim7000e
     from time import sleep
     import machine
-    from machine import UART, Timer, Pin
+    from machine import Timer, Pin
 
 except ImportError as i_err:
     print(i_err)
@@ -17,9 +17,7 @@ timer_1 = Timer(1)
 timer_2 = Timer(2)
 timer_3 = Timer(3)
 
-led = Pin(18, Pin.OUT)
-
-flag = False
+led = Pin(19, Pin.OUT)
 
 #--Timers loop (for PMS7003):--
 def handle_timer_0(timer_0):
@@ -40,8 +38,6 @@ def handle_timer_2(timer_2):
         sensor.uart_reinit()
     sensor.send_command("sleep")
     print("SLEEP")
-    global flag
-    flag = True
     machine.deepsleep(60000)
     #timer_0.init(mode=Timer.ONE_SHOT, period=60000, callback=handle_timer_0)
 #----------------
