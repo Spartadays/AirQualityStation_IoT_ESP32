@@ -29,7 +29,7 @@ def handle_timer_1(timer_1):
     sensor.uart_clear_trash()
     sensor.send_command("read")
     timer_2.init(mode=Timer.ONE_SHOT, period=15000, callback=handle_timer_2)
-    
+
 def handle_timer_2(timer_2):
     if sensor.read_transmission():
         sensor.print_all_data()

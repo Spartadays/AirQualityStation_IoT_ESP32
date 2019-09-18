@@ -32,7 +32,6 @@ class SIM7000E():
 
         self.sim_uart = UART(self.uart_n, 115200)
         self.sim_uart.init(baudrate=115200, parity=None, stop=1, rx=self.rx, tx=self.tx)
-        
         self.number_to_send_sms = None
         self.gsm_apn = None
 
@@ -47,9 +46,8 @@ class SIM7000E():
 
     def send_uart(self, w):
         self.sim_uart.write(w)
-    
+
     def print_uart(self):
         if self.sim_uart.any() >= 1:
             data = self.sim_uart.read()
             print(data)
-    
