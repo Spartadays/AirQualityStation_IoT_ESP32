@@ -19,7 +19,10 @@ timer_3 = Timer(3)
 
 led = Pin(19, Pin.OUT)
 
-#--Timers loop (for PMS7003):--
+send_flag = False
+pms_flag = False
+
+#--Timers for PMS7003:--
 def handle_timer_0(timer_0):
     sensor.send_command("wakeup")
     sensor.send_command("passive")
@@ -37,14 +40,15 @@ def handle_timer_2(timer_2):
         print("Error")
         sensor.uart_reinit()
     sensor.send_command("sleep")
-    print("SLEEP")
-    machine.deepsleep(60000)
-    #timer_0.init(mode=Timer.ONE_SHOT, period=60000, callback=handle_timer_0)
+    global pms_flag 
+    pms_flag = True
 #----------------
 
 def handle_timer_3(timer_3):
     sim.send_uart('AT+CCLK?\r')
     sim.print_uart()
+    global send_flag
+    send_flag = True
 
 #STARTUP CODE:
 timer_0.init(mode=Timer.ONE_SHOT, period=2000, callback=handle_timer_0)  # wait for uarts to initialize
@@ -53,7 +57,10 @@ timer_3.init(mode=Timer.PERIODIC, period=1000, callback=handle_timer_3)
 print("STARTED")
 while True:
     led.value(1)
-    sleep(0.03)
+    sleep(0.05)
     led.value(0)
-    sleep(0.03)
+    sleep(0.05)
+    if send_flag and pms_flag:
+        print("SLEEP for 60 seconds")
+        machine.deepsleep(60000)
 
