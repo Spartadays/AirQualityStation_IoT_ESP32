@@ -24,24 +24,16 @@ DATA_9 = NUM_OF_PAR_1_UM_IN_0_1_L_OF_AIR = 8  # Number of particles with diamete
 DATA_10 = NUM_OF_PAR_2_5_UM_IN_0_1_L_OF_AIR = 9  # Number of particles with diameter beyond 2.5 um in 0.1 L of air
 DATA_11 = NUM_OF_PAR_5_0_UM_IN_0_1_L_OF_AIR = 10  # Number of particles with diameter beyond 5.0 um in 0.1 L of air
 DATA_12 = NUM_OF_PAR_10_UM_IN_0_1_L_OF_AIR = 11  # Number of particles with diameter beyond 10 um in 0.1 L of air
+# Call Factor: CF=1 should be used in the factory environment
 
 class PMS7003():
     """PMS7003 air quality sensor class"""
-    def __init__(self, uart_num=None, rx=None, tx=None):
+    def __init__(self, uart_num=1, rx=21, tx=22, reset_pin=None, set_pin=None):
         """Create PMS7003 sensor object on given UART pins.
         Default is UART1, rx: 21, tx: 22"""
-        if uart_num is None or not isinstance(uart_num, int):
-            self.uart_num = 1
-        else:
-            self.uart_num = uart_num
-        if rx is None or not isinstance(rx, int):
-            self.rx = 21
-        else:
-            self.rx = rx
-        if tx is None or not isinstance(tx, int):
-            self.tx = 22
-        else:
-            self.tx = tx
+        self.uart_num = uart_num
+        self.rx = rx
+        self.tx = tx
         
         self.pms_uart = UART(self.uart_num, 9600)
         self.pms_uart.init(baudrate=9600, parity=None, stop=1, rx=self.rx, tx=self.tx)
@@ -49,13 +41,13 @@ class PMS7003():
         
         self.read_flag = False
         self.measures = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.cf = 0  # Call Factor: CF=1 should be used in the factory environment
         
         ##COMMENT CODE BELOW IF YOU DO IT IN YOUR SCRIPT AFTER INITIALIZATION:##
         #self.send_command(passive)
         #utime.sleep(2)
         #self.pms_uart.read()  # Clear all trash from uart buffer
         ##END##
+        print("PMS: Init\n")
     
     def uart_deinit(self):
         self.pms_uart.deinit()
@@ -123,6 +115,30 @@ class PMS7003():
         print('Number of particles with diameter beyond 5.0 um in 0.1L of air = ' + str(self.measures[DATA_11]))
         print('Number of particles with diameter beyond 10 um in 0.1L of air = ' + str(self.measures[DATA_12]))
 
+    def pm1_0(self, cf=0):
+        if cf == 0:
+            return self.measures[DATA_4]
+        else:
+            return self.measures[DATA_1]
+
+    def pm2_5(self, cf=0):
+        if cf == 0:
+            return self.measures[DATA_5]
+        else:
+            return self.measures[DATA_2]
+    
+    def pm10(self, cf=0):
+        if cf == 0:
+            return self.measures[DATA_6]
+        else:
+            return self.measures[DATA_3]
+    
+    def num_of_par_0_3um_in_0_1L(self):
+        return self.measures[DATA_7]
+
+    def num_of_par_0_5um_in_0_1L(self):
+        return self.measures[DATA_8]
+
     def send_command(self, command):
         """Send command to sensor. Modes: active(default) or passive. States: sleep or wakeup(default)"""
         start_b1 = 0x42
@@ -162,3 +178,6 @@ class PMS7003():
         protocol = bytearray([start_b1, start_b2, cmd, data_h, data_l, lrc_h, lrc_l])
         self.pms_uart.write(protocol)
 
+    def sleep(self, transistor_pin=None):
+        self.send_command(sleep)
+        pass
