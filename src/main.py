@@ -5,14 +5,11 @@ try:
     from time import sleep
     import machine
     from machine import Timer, Pin
-
 except ImportError as i_err:
     print(i_err)
 
 sensor = pms7003.PMS7003()  # UART 1 (rx: 21, tx: 22)
-sim = sim7000e.SIM7000E('783846076', 'internet')   # UART 2 (rx: 16, tx: 17)
-
-sim.power_on(echo=True)
+sim = sim7000e.SIM7000E()   # UART 2 (rx: 16, tx: 17)
 
 timer_0 = Timer(0)
 timer_1 = Timer(1)
@@ -58,8 +55,7 @@ def handle_timer_2(timer_2):
 #----------------
 
 def handle_timer_3(timer_3):
-    sim.send_uart('AT+CCLK?\r')
-    sim.print_uart()
+    #sim.send_uart('AT+CCLK?\r')
     global send_flag
     send_flag = True
 
@@ -67,13 +63,23 @@ def handle_timer_3(timer_3):
 timer_0.init(mode=Timer.ONE_SHOT, period=2000, callback=handle_timer_0)  # wait for uarts to initialize
 timer_3.init(mode=Timer.PERIODIC, period=3000, callback=handle_timer_3)
 
+sim.power_on(echo=True)
+
 while True:
     led.value(1)
     sleep(0.05)
     led.value(0)
     sleep(0.05)
+    sim.print_uart()
     if send_flag and pms_flag:
         print(thingspeak_fields)
+        sim.send_to_thinspeak(gsm_apn='internet', api_key='BY3E4OY6MMTCFJLR',
+                                f4=thingspeak_fields[4-1],
+                                f5=thingspeak_fields[5-1],
+                                f6=thingspeak_fields[6-1],
+                                f7=thingspeak_fields[7-1],
+                                f8=thingspeak_fields[8-1]
+                                )
         sim.power_off()
         print("SLEEP for 60 seconds")
         machine.deepsleep(60000)

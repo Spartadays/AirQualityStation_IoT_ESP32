@@ -3,7 +3,7 @@ try:
     from machine import UART
 except ImportError as i_err:
     print(i_err)
-    
+
 # COMMANDS:
 active = "active"
 passive = "passive"
@@ -34,33 +34,30 @@ class PMS7003():
         self.uart_num = uart_num
         self.rx = rx
         self.tx = tx
-        
         self.pms_uart = UART(self.uart_num, 9600)
         self.pms_uart.init(baudrate=9600, parity=None, stop=1, rx=self.rx, tx=self.tx)
         self.uart_flag = True
-        
         self.read_flag = False
         self.measures = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        
         ##COMMENT CODE BELOW IF YOU DO IT IN YOUR SCRIPT AFTER INITIALIZATION:##
         #self.send_command(passive)
         #utime.sleep(2)
         #self.pms_uart.read()  # Clear all trash from uart buffer
         ##END##
         print("PMS: Init\n")
-    
+
     def uart_deinit(self):
         self.pms_uart.deinit()
         self.uart_flag = False
-    
+
     def uart_reinit(self):
         self.pms_uart = UART(self.uart_num, 9600)
         self.pms_uart.init(baudrate=9600, parity=None, stop=1, rx=self.rx, tx=self.tx)
         self.uart_flag = True
-    
+
     def uart_clear_trash(self):
         self.pms_uart.read()
-    
+
     def read_transmission(self):
         """Read serial data, process them and update class variables"""
         if self.pms_uart.any() >= 1:
@@ -126,13 +123,13 @@ class PMS7003():
             return self.measures[DATA_5]
         else:
             return self.measures[DATA_2]
-    
+
     def pm10(self, cf=0):
         if cf == 0:
             return self.measures[DATA_6]
         else:
             return self.measures[DATA_3]
-    
+
     def num_of_par_0_3um_in_0_1L(self):
         return self.measures[DATA_7]
 
