@@ -73,6 +73,6 @@ while True:
         send_flag = True
     if pms_flag and send_flag:
         x = 3600000
-        print("SLEEP for" + str(x/1000) +  "seconds")
+        print("SLEEP for " + str(x/1000) +  "seconds")
         machine.deepsleep(x)
 #--------------------
