@@ -76,7 +76,6 @@ while True:
         sim.send_to_thinspeak(api_key='BY3E4OY6MMTCFJLR', fields=thingspeak_fields)
         sim.disconnect_from_thingspeak()
         sim.power_off()
-        global send_flag
         send_flag = True
     if pms_flag and send_flag:
         x = 3600000

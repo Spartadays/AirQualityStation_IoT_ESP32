@@ -97,4 +97,3 @@ class SIM7000E():
             self.send_uart('AT+CIPCLOSE=0\r')
         self.send_uart('AT+CIPCLOSE\r') # Close connection
         self.send_uart('AT+CIPSHUT\r') # Deactivate context
-
