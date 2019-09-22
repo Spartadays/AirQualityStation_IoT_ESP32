@@ -4,7 +4,7 @@ try:
     import sim7000e
     from time import sleep
     import machine
-    from machine import Timer, Pin
+    from machine import Timer
 except ImportError as i_err:
     print(i_err)
 
@@ -16,8 +16,6 @@ timer_0 = Timer(0)
 timer_1 = Timer(1)
 timer_2 = Timer(2)
 timer_3 = Timer(3)
-
-led = Pin(19, Pin.OUT)
 #--------------------
 
 #-----GLOBAL:-----
@@ -38,7 +36,7 @@ def handle_timer_2(timer_2):
     global thingspeak_fields
     if sensor.read_transmission():
         #sensor.print_all_data()
-        #TODO: Dorobic mediane z 5 nastepujacych po sobie odczytach
+        #TODO: Dorobic mediane z 3 nastepujacych po sobie odczytach
         thingspeak_fields[3] = str(sensor.pm1_0())
         thingspeak_fields[4] = str(sensor.pm2_5())
         thingspeak_fields[5] = str(sensor.pm10())
@@ -57,7 +55,7 @@ def handle_timer_2(timer_2):
 sleep(2) # wait for everything to stabilize
 sensor.send_command("wakeup")
 sensor.send_command("passive")
-timer_1.init(mode=Timer.ONE_SHOT, period=30000, callback=handle_timer_1)
+timer_1.init(mode=Timer.ONE_SHOT, period=40000, callback=handle_timer_1)
 print("PMS: Wakeup\n")
 
 sim.power_on(echo=True)
@@ -66,10 +64,6 @@ sim.connect_to_thingspeak(gsm_apn='internet')
 
 #-----MAIN LOOP:-----
 while True:
-    led.value(1)
-    sleep(0.05)
-    led.value(0)
-    sleep(0.05)
     sim.print_uart()
     if pms_flag and not send_flag:
         print(thingspeak_fields)

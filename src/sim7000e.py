@@ -61,11 +61,11 @@ class SIM7000E():
     def connect_to_thingspeak(self, gsm_apn):
         self.send_uart('AT+CNMP=13\r') # GPRS/GSM mode
         self.send_uart('AT+NBSC=1\r') # Scrambling
-        self.send_uart('AT+COPS?\r') # Signal quality
-        sleep(4)
-        self.send_uart('AT+CGATT?\r') # Attach check
-        sleep(2)
-        self.send_uart('AT+CSTT?\r') # Query available APN
+        # self.send_uart('AT+COPS?\r') # Signal quality
+        # sleep(4)
+        # self.send_uart('AT+CGATT?\r') # Attach check
+        # sleep(2)
+        # self.send_uart('AT+CSTT?\r') # Query available APN
         self.send_uart('AT+CSTT="' + gsm_apn + '"\r') # Set APN
         self.send_uart('AT+CIICR\r') # Bring up connection
         sleep(6)

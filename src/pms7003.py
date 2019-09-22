@@ -175,6 +175,7 @@ class PMS7003():
         protocol = bytearray([start_b1, start_b2, cmd, data_h, data_l, lrc_h, lrc_l])
         self.pms_uart.write(protocol)
 
-    def sleep(self, transistor_pin=None):
-        self.send_command(sleep)
-        pass
+    # TODO:
+    # def sleep(self, transistor_pin=None):
+    #     self.send_command(sleep)
+    #     pass
