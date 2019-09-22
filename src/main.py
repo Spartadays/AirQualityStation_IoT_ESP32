@@ -8,6 +8,7 @@ try:
 except ImportError as i_err:
     print(i_err)
 
+#-----OBJECTS:-----
 sensor = pms7003.PMS7003()  # UART 1 (rx: 21, tx: 22)
 sim = sim7000e.SIM7000E()   # UART 2 (rx: 16, tx: 17)
 
@@ -17,19 +18,16 @@ timer_2 = Timer(2)
 timer_3 = Timer(3)
 
 led = Pin(19, Pin.OUT)
+#--------------------
 
+#-----GLOBAL:-----
 send_flag = False
 pms_flag = False
 
-thingspeak_fields = [None, None, None, None, None, None, None, None]
+thingspeak_fields = [-999, -999, -999, None, None, None, None, None]
+#--------------------
 
-#--Timers for PMS7003:--
-def handle_timer_0(timer_0):
-    sensor.send_command("wakeup")
-    sensor.send_command("passive")
-    timer_1.init(mode=Timer.ONE_SHOT, period=30000, callback=handle_timer_1)
-    print("PMS: Wakeup\n")
-
+#-----TIMERS INTERRUPTS (for PMS7003):-----
 def handle_timer_1(timer_1):
     sensor.uart_clear_trash()
     sensor.send_command("read")
@@ -52,29 +50,35 @@ def handle_timer_2(timer_2):
     global pms_flag
     pms_flag = True
     print("PMS: Sleep\n")
-#----------------
+#--------------------
 
-def handle_timer_3(timer_3):
-    #sim.send_uart('AT+CCLK?\r')
-    global send_flag
-    send_flag = True
-
-#STARTUP CODE:
-timer_0.init(mode=Timer.ONE_SHOT, period=2000, callback=handle_timer_0)  # wait for uarts to initialize
-timer_3.init(mode=Timer.PERIODIC, period=3000, callback=handle_timer_3)
+#-----STARTUP CODE:-----
+sleep(2) # wait for everything to stabilize
+sensor.send_command("wakeup")
+sensor.send_command("passive")
+timer_1.init(mode=Timer.ONE_SHOT, period=30000, callback=handle_timer_1)
+print("PMS: Wakeup\n")
 
 sim.power_on(echo=True)
+sim.connect_to_thingspeak(gsm_apn='internet')
+#--------------------
 
+#-----MAIN LOOP:-----
 while True:
     led.value(1)
     sleep(0.05)
     led.value(0)
     sleep(0.05)
     sim.print_uart()
-    if send_flag and pms_flag:
+    if pms_flag and not send_flag:
         print(thingspeak_fields)
-        sim.send_to_thinspeak(gsm_apn='internet', api_key='BY3E4OY6MMTCFJLR', fields=thingspeak_fields)
+        sim.send_to_thinspeak(api_key='BY3E4OY6MMTCFJLR', fields=thingspeak_fields)
+        sim.disconnect_from_thingspeak()
         sim.power_off()
-        print("SLEEP for 60 seconds")
-        machine.deepsleep(60000)
-
+        global send_flag
+        send_flag = True
+    if pms_flag and send_flag:
+        x = 3600000
+        print("SLEEP for" + x/1000 +  "seconds")
+        machine.deepsleep(x)
+#--------------------

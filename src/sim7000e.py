@@ -58,7 +58,7 @@ class SIM7000E():
         self.send_uart('AT\r')
         print("SIM: Power on\n")
 
-    def send_to_thinspeak(self, gsm_apn, api_key, fields):
+    def connect_to_thingspeak(self, gsm_apn):
         self.send_uart('AT+CNMP=13\r') # GPRS/GSM mode
         self.send_uart('AT+NBSC=1\r') # Scrambling
         self.send_uart('AT+COPS?\r') # Signal quality
@@ -72,6 +72,8 @@ class SIM7000E():
         self.send_uart('AT+CIFSR\r') # Get local address
         self.send_uart('AT+CIPSTART="TCP","api.thingspeak.com",80\r') # Start up connection
         sleep(4)
+
+    def send_to_thinspeak(self, api_key, fields):
         self.send_uart('AT+CIPSEND\r') # Send data
         self.send_uart('GET /update?api_key='+api_key+
                        '&field1='+str(fields[0])+
@@ -84,9 +86,15 @@ class SIM7000E():
                        '&field8='+str(fields[7])+
                        '\r\n'
                        ) # Data
-        self.send_uart('\x1A\r\n')
+        self.send_uart('\x1A\r\n') # 0x1A ends data entering mode
         sleep(3)
         self.print_uart()
-        self.send_uart('AT+CIPCLOSE=0\r') # Close connection
+
+    def disconnect_from_thingspeak(self, fast=True):
+        if fast:
+            self.send_uart('AT+CIPCLOSE=1\r')
+        else:
+            self.send_uart('AT+CIPCLOSE=0\r')
+        self.send_uart('AT+CIPCLOSE\r') # Close connection
         self.send_uart('AT+CIPSHUT\r') # Deactivate context
-        #TODO: Podzielic na connect, send i disconnect potem uzywac ich odpowiednio na starcie, w petli po ustawieniu flagi odczytu z pms i po wyslaniu
+
