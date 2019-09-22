@@ -35,7 +35,7 @@ class SIM7000E():
             print(data)
 
     def send_sms(self, number, text):
-        pass
+        pass #TODO
 
     def power_off(self):
         self.send_uart('AT+POWD=0/r')
@@ -58,7 +58,7 @@ class SIM7000E():
         self.send_uart('AT\r')
         print("SIM: Power on\n")
 
-    def send_to_thinspeak(self, gsm_apn, api_key, f4, f5, f6, f7, f8):
+    def send_to_thinspeak(self, gsm_apn, api_key, fields):
         self.send_uart('AT+CNMP=13\r') # GPRS/GSM mode
         self.send_uart('AT+NBSC=1\r') # Scrambling
         self.send_uart('AT+COPS?\r') # Signal quality
@@ -74,13 +74,16 @@ class SIM7000E():
         sleep(4)
         self.send_uart('AT+CIPSEND\r') # Send data
         self.send_uart('GET /update?api_key='+api_key+
-                        '&field4='+str(f4)+
-                        '&field5='+str(f5)+
-                        '&field6='+str(f6)+
-                        '&field7='+str(f7)+
-                        '&field8='+str(f8)+
-                        '\r\n'
-                        ) # Data
+                       '&field1='+str(fields[0])+
+                       '&field2='+str(fields[1])+
+                       '&field3='+str(fields[2])+
+                       '&field4='+str(fields[3])+
+                       '&field5='+str(fields[4])+
+                       '&field6='+str(fields[5])+
+                       '&field7='+str(fields[6])+
+                       '&field8='+str(fields[7])+
+                       '\r\n'
+                       ) # Data
         self.send_uart('\x1A\r\n')
         sleep(3)
         self.print_uart()
