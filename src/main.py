@@ -40,11 +40,11 @@ def handle_timer_2(timer_2):
     global thingspeak_fields
     if sensor.read_transmission():
         #sensor.print_all_data()
-        thingspeak_fields[4-1] = str(sensor.pm1_0())
-        thingspeak_fields[5-1] = str(sensor.pm2_5())
-        thingspeak_fields[6-1] = str(sensor.pm10())
-        thingspeak_fields[7-1] = str(sensor.num_of_par_0_3um_in_0_1L())
-        thingspeak_fields[8-1] = str(sensor.num_of_par_0_5um_in_0_1L())
+        thingspeak_fields[3] = str(sensor.pm1_0())
+        thingspeak_fields[4] = str(sensor.pm2_5())
+        thingspeak_fields[5] = str(sensor.pm10())
+        thingspeak_fields[6] = str(sensor.num_of_par_0_3um_in_0_1L())
+        thingspeak_fields[7] = str(sensor.num_of_par_0_5um_in_0_1L())
     else:
         print("PMS: Error\n")
         sensor.uart_reinit()
@@ -73,13 +73,7 @@ while True:
     sim.print_uart()
     if send_flag and pms_flag:
         print(thingspeak_fields)
-        sim.send_to_thinspeak(gsm_apn='internet', api_key='BY3E4OY6MMTCFJLR',
-                                f4=thingspeak_fields[4-1],
-                                f5=thingspeak_fields[5-1],
-                                f6=thingspeak_fields[6-1],
-                                f7=thingspeak_fields[7-1],
-                                f8=thingspeak_fields[8-1]
-                                )
+        sim.send_to_thinspeak(gsm_apn='internet', api_key='BY3E4OY6MMTCFJLR', fields=thingspeak_fields)
         sim.power_off()
         print("SLEEP for 60 seconds")
         machine.deepsleep(60000)
