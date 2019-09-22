@@ -38,6 +38,7 @@ def handle_timer_2(timer_2):
     global thingspeak_fields
     if sensor.read_transmission():
         #sensor.print_all_data()
+        #TODO: Dorobic mediane z 5 nastepujacych po sobie odczytach
         thingspeak_fields[3] = str(sensor.pm1_0())
         thingspeak_fields[4] = str(sensor.pm2_5())
         thingspeak_fields[5] = str(sensor.pm10())

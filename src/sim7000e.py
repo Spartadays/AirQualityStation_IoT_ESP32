@@ -35,7 +35,7 @@ class SIM7000E():
             print(data)
 
     def send_sms(self, number, text):
-        pass #TODO
+        pass #TODO: wysylanie sms default + fun do sms gdy niska bateria (pomiar z dzielnika napiecia -> sprawdzic czy to nie bedzie ciagle zjadac baterii)
 
     def power_off(self):
         self.send_uart('AT+POWD=0/r')
