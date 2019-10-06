@@ -28,7 +28,7 @@ DATA_12 = NUM_OF_PAR_10_UM_IN_0_1_L_OF_AIR = 11  # Number of particles with diam
 
 class PMS7003():
     """PMS7003 air quality sensor class"""
-    def __init__(self, uart_num=1, rx=21, tx=22, reset_pin=None, set_pin=None):
+    def __init__(self, uart_num=1, rx=21, tx=22):
         """Create PMS7003 sensor object on given UART pins.
         Default is UART1, rx: 21, tx: 22"""
         self.uart_num = uart_num
@@ -174,8 +174,3 @@ class PMS7003():
             return
         protocol = bytearray([start_b1, start_b2, cmd, data_h, data_l, lrc_h, lrc_l])
         self.pms_uart.write(protocol)
-
-    # TODO:
-    # def sleep(self, transistor_pin=None):
-    #     self.send_command(sleep)
-    #     pass

@@ -4,7 +4,7 @@ try:
     import sim7000e
     from time import sleep
     import machine
-    from machine import Timer
+    from machine import Timer, Pin
 except ImportError as i_err:
     print(i_err)
 
@@ -16,6 +16,8 @@ timer_0 = Timer(0)
 timer_1 = Timer(1)
 timer_2 = Timer(2)
 timer_3 = Timer(3)
+
+mosfet_pin = Pin(19, Pin.OUT)
 #--------------------
 
 #-----GLOBAL:-----
@@ -36,7 +38,6 @@ def handle_timer_2(timer_2):
     global thingspeak_fields
     if sensor.read_transmission():
         #sensor.print_all_data()
-        #TODO: Dorobic mediane z 3 nastepujacych po sobie odczytach
         thingspeak_fields[3] = str(sensor.pm1_0())
         thingspeak_fields[4] = str(sensor.pm2_5())
         thingspeak_fields[5] = str(sensor.pm10())
@@ -52,10 +53,11 @@ def handle_timer_2(timer_2):
 #--------------------
 
 #-----STARTUP CODE:-----
+mosfet_pin.value(1)  # power on sensor and sim module
 sleep(2) # wait for everything to stabilize
 sensor.send_command("wakeup")
 sensor.send_command("passive")
-timer_1.init(mode=Timer.ONE_SHOT, period=40000, callback=handle_timer_1)
+timer_1.init(mode=Timer.ONE_SHOT, period=60000, callback=handle_timer_1)
 print("PMS: Wakeup\n")
 
 sim.power_on(echo=True)
@@ -72,6 +74,7 @@ while True:
         sim.power_off()
         send_flag = True
     if pms_flag and send_flag:
+        mosfet_pin.value(0)
         x = 3600000
         print("SLEEP for " + str(x/1000) +  "seconds")
         machine.deepsleep(x)

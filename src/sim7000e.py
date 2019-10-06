@@ -38,11 +38,10 @@ class SIM7000E():
         pass #TODO: wysylanie sms default + fun do sms gdy niska bateria (pomiar z dzielnika napiecia -> sprawdzic czy to nie bedzie ciagle zjadac baterii)
 
     def power_off(self):
-        self.send_uart('AT+POWD=1\r')
+        self.send_uart('AT+CPOWD=1\r')
         sleep(2)
         self.pwr.value(0)
         print("SIM: Power off\n")
-        #TODO: NIe dziala wylaczanie dorobic pulldown na rezystorze do amsy
 
     def power_on(self, echo=False):
         self.pwr.value(1)
