@@ -14,8 +14,8 @@ except ImportError as i_err:
 sensor = pms7003.PMS7003()  # UART 1 (rx: 21, tx: 22)
 sim = sim7000e.SIM7000E()   # UART 2 (rx: 16, tx: 17)
 i2c = I2C(sda=Pin(25), scl=Pin(26), freq=10000)  # i2c for bmp280
-bme = BME280.BME280(i2c=i2c) # bmp280 sensor (but using bme library)
-dht_s = dht.DHT22(Pin(4))
+
+# OBJECTS FOR DHT22 AND BME280 ARE DECLARED AFTER POWERING SENSORS IN STARTUP SECTION, DUE TO SPECIFIC INIT METHODS IN THEIR LIBRARIES
 
 timer_0 = Timer(0)
 timer_1 = Timer(1)
@@ -78,6 +78,10 @@ def handle_timer_3(timer_3):
 #-----STARTUP CODE:-----
 mosfet_pin.value(1)  # power on sensor and sim module
 sleep(2) # wait for everything to stabilize
+
+bme = BME280.BME280(i2c=i2c) # bmp280 sensor (but using bme library)
+dht_s = dht.DHT22(Pin(4))
+
 sensor.send_command("wakeup")
 sensor.send_command("passive")
 timer_1.init(mode=Timer.ONE_SHOT, period=60000, callback=handle_timer_1)
