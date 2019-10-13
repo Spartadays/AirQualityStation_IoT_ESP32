@@ -147,7 +147,7 @@ while True:
         sim.disconnect_from_thingspeak()
         #--SMS SECTION:--
         if battery_voltage <= 3.2 or error_flag:
-            txt = 'Battery percentage: ' + str(battery_percentage) + ' [%]\n' + 'Battery voltage: ' + str(battery_voltage) + '[V]'
+            txt = 'Battery percentage: ' + str(battery_percentage) + ' [%]\n' + 'Battery voltage: ' + str(battery_voltage) + '[V]\n'
             if error_flag:
                 txt = txt + 'Errors:\n' + str(error_list)
             if battery_voltage <= 3.2:
