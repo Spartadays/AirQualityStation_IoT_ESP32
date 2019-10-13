@@ -35,7 +35,10 @@ class SIM7000E():
             print(data)
 
     def send_sms(self, number, text):
-        pass #TODO: wysylanie sms default + fun do sms gdy niska bateria (pomiar z dzielnika napiecia -> sprawdzic czy to nie bedzie ciagle zjadac baterii)
+        self.send_uart('AT+CMGF=1\r')
+        self.send_uart('AT+CMGS="'+str(number)+'"\r')
+        self.send_uart(str(text))
+        self.send_uart('\x1A\r\n') # 0x1A ends data entering mode
 
     def power_off(self):
         self.send_uart('AT+CPOWD=1\r')
@@ -95,5 +98,5 @@ class SIM7000E():
             self.send_uart('AT+CIPCLOSE=1\r')
         else:
             self.send_uart('AT+CIPCLOSE=0\r')
-        self.send_uart('AT+CIPCLOSE\r') # Close connection
+        # Close connection
         self.send_uart('AT+CIPSHUT\r') # Deactivate context
