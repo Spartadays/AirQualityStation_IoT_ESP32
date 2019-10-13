@@ -102,7 +102,7 @@ def read_battery():
     bat_adc_val = bat.read()
     bat_div_val = mapValueFromTo(bat_adc_val, 0, 1023, 0, 2)
     bat_val = mapValueFromTo(bat_div_val, 0, 2, 0, 4.2)
-    bat_p = mapValueFromTo(bat_val, 2.5, 4.2, 0, 100)
+    bat_p = mapValueFromTo(bat_val, 2.5, 4.1, 0, 100)
     return [bat_val, bat_p]
 
 #-----STARTUP CODE:-----
@@ -110,9 +110,9 @@ mosfet_pin.value(1)  # power on sensor and sim module
 sleep(2) # wait for everything to stabilize
 
 # Read battery state:
-[battery_voltage, battery_percentage] = read_battery()
-print(battery_voltage)
-print(battery_percentage)
+# [battery_voltage, battery_percentage] = read_battery()
+# print(battery_voltage)
+# print(battery_percentage)
 
 try:
     bme = BME280.BME280(i2c=i2c) # bmp280 sensor (but using bme library)
@@ -146,13 +146,13 @@ while True:
         sim.send_to_thinspeak(api_key='BY3E4OY6MMTCFJLR', fields=thingspeak_fields)
         sim.disconnect_from_thingspeak()
         #--SMS SECTION:--
-        if battery_voltage <= 3.2 or error_flag:
-            txt = 'Battery percentage: ' + str(battery_percentage) + ' [%]\n' + 'Battery voltage: ' + str(battery_voltage) + '[V]\n'
-            if error_flag:
-                txt = txt + 'Errors:\n' + str(error_list)
-            if battery_voltage <= 3.2:
-                txt = txt + 'Please, charge your battery.\n'
-            sim.send_sms('+48783846076', txt)
+        # if battery_voltage <= 3.9 or error_flag:
+        #     txt = 'Battery percentage: ' + str(battery_percentage) + ' [%]\n' + 'Battery voltage: ' + str(battery_voltage) + '[V]\n'
+        #     if error_flag:
+        #         txt = txt + 'Errors:\n' + str(error_list)
+        #     if battery_voltage <= 3.9:
+        #         txt = txt + 'Please, charge your battery.\n'
+        #     sim.send_sms('+48783846076', txt)
         #----------------
         sim.power_off()
         send_flag = True
