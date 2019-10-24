@@ -59,6 +59,7 @@ class SIM7000E():
             self.send_uart('ATE0\r')
 
         self.send_uart('AT\r')
+        self.send_uart('AT+CNMI=0,0,0,0\r') # Disable all SMS notifications
         print("SIM: Power on\n")
 
     def connect_to_thingspeak(self, gsm_apn):

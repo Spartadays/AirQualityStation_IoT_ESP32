@@ -23,7 +23,7 @@ timer_2 = Timer(2)
 timer_3 = Timer(3)
 
 mosfet_pin = Pin(19, Pin.OUT)
-bat = ADC(Pin(34))
+# bat = ADC(Pin(34))
 #--------------------
 
 #-----GLOBAL:-----
@@ -94,16 +94,16 @@ def mapValueFromTo(value, l_min, l_max, r_min, r_max):
     """Maps value from one range to another"""
     return r_min + (float(value - l_min) / float(l_max - l_min)* r_max - r_min)
 
-def read_battery():
-    """Return list with battery voltage and battery percentage"""
-    bat.atten(ADC.ATTN_6DB)
-    bat.width(ADC.WIDTH_10BIT)
-    sleep(0.2)
-    bat_adc_val = bat.read()
-    bat_div_val = mapValueFromTo(bat_adc_val, 0, 1023, 0, 2)
-    bat_val = mapValueFromTo(bat_div_val, 0, 2, 0, 4.2)
-    bat_p = mapValueFromTo(bat_val, 2.5, 4.1, 0, 100)
-    return [bat_val, bat_p]
+# def read_battery():
+#     """Return list with battery voltage and battery percentage"""
+#     bat.atten(ADC.ATTN_6DB)
+#     bat.width(ADC.WIDTH_10BIT)
+#     sleep(0.2)
+#     bat_adc_val = bat.read()
+#     bat_div_val = mapValueFromTo(bat_adc_val, 0, 1023, 0, 2)
+#     bat_val = mapValueFromTo(bat_div_val, 0, 2, 0, 4.2)
+#     bat_p = mapValueFromTo(bat_val, 2.5, 4.1, 0, 100)
+#     return [bat_val, bat_p]
 
 #-----STARTUP CODE:-----
 mosfet_pin.value(1)  # power on sensor and sim module
@@ -145,14 +145,15 @@ while True:
         print(thingspeak_fields)
         sim.send_to_thinspeak(api_key='BY3E4OY6MMTCFJLR', fields=thingspeak_fields)
         sim.disconnect_from_thingspeak()
-        #--SMS SECTION:--
-        # if battery_voltage <= 3.9 or error_flag:
-        #     txt = 'Battery percentage: ' + str(battery_percentage) + ' [%]\n' + 'Battery voltage: ' + str(battery_voltage) + '[V]\n'
-        #     if error_flag:
-        #         txt = txt + 'Errors:\n' + str(error_list)
-        #     if battery_voltage <= 3.9:
-        #         txt = txt + 'Please, charge your battery.\n'
-        #     sim.send_sms('+48783846076', txt)
+        # --SMS SECTION:--
+        if error_flag:
+            txt = 'Errors:\n' + str(error_list)
+            # txt = 'Battery percentage: ' + str(battery_percentage) + ' [%]\n' + 'Battery voltage: ' + str(battery_voltage) + '[V]\n'
+            # if error_flag:
+            #     txt = txt + 'Errors:\n' + str(error_list)
+            # if battery_voltage <= 3.9:
+            #     txt = txt + 'Please, charge your battery.\n'
+            sim.send_sms('+48783846076', txt)
         #----------------
         sim.power_off()
         send_flag = True
