@@ -39,33 +39,32 @@ error_list = []
 
 #-----TIMERS INTERRUPTS (for PMS7003):-----
 def handle_timer_1(timer_1):
+    """Send read request to PMS7003"""
     sensor.uart_clear_trash()
     sensor.send_command("read")
     timer_2.init(mode=Timer.ONE_SHOT, period=15000, callback=handle_timer_2)
-    #print("PMS: Read\n")
 
 def handle_timer_2(timer_2):
+    """Read transmission from PMS7003 and sleep it"""
     global thingspeak_fields
     if sensor.read_transmission():
-        #sensor.print_all_data()
         thingspeak_fields[3] = str(sensor.pm1_0())
         thingspeak_fields[4] = str(sensor.pm2_5())
         thingspeak_fields[5] = str(sensor.pm10())
         thingspeak_fields[6] = str(sensor.num_of_par_0_3um_in_0_1L())
         thingspeak_fields[7] = str(sensor.num_of_par_0_5um_in_0_1L())
     else:
-        #print("PMS: Error\n")
         global error_flag
         error_flag = True
         error_list.append("PMS7003: Transmission Error")
     sensor.send_command("sleep")
     global pms_flag
     pms_flag = True
-    print("PMS: Sleep\n")
 #--------------------
 
 #-----TIMERS INTERRUPTS (other):-----
 def handle_timer_0(timer_0):
+    """Read from BME280 sensor"""
     global thingspeak_fields
     try:
         thingspeak_fields[0] = str(bme.temperature)
@@ -78,6 +77,7 @@ def handle_timer_0(timer_0):
     bme_flag = True
 
 def handle_timer_3(timer_3):
+    """Read from DHT22 sensor"""
     global thingspeak_fields
     try:
         dht_s.measure()
@@ -109,11 +109,6 @@ def mapValueFromTo(value, l_min, l_max, r_min, r_max):
 mosfet_pin.value(1)  # power on sensor and sim module
 sleep(2) # wait for everything to stabilize
 
-# Read battery state:
-# [battery_voltage, battery_percentage] = read_battery()
-# print(battery_voltage)
-# print(battery_percentage)
-
 try:
     bme = BME280.BME280(i2c=i2c) # bmp280 sensor (but using bme library)
 except Exception:
@@ -129,7 +124,6 @@ except Exception:
 sensor.send_command("wakeup")
 sensor.send_command("passive")
 timer_1.init(mode=Timer.ONE_SHOT, period=60000, callback=handle_timer_1)
-print("PMS: Wakeup\n")
 
 timer_0.init(mode=Timer.ONE_SHOT, period=10000, callback=handle_timer_0)
 timer_3.init(mode=Timer.ONE_SHOT, period=20000, callback=handle_timer_3)
@@ -145,7 +139,7 @@ while True:
         print(thingspeak_fields)
         sim.send_to_thinspeak(api_key='BY3E4OY6MMTCFJLR', fields=thingspeak_fields)
         sim.disconnect_from_thingspeak()
-        # --SMS SECTION:--
+        #--SMS SECTION:--
         if error_flag:
             txt = 'Errors:\n' + str(error_list)
             # txt = 'Battery percentage: ' + str(battery_percentage) + ' [%]\n' + 'Battery voltage: ' + str(battery_voltage) + '[V]\n'

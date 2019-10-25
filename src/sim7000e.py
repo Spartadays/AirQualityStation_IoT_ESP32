@@ -22,7 +22,6 @@ class SIM7000E():
 
         self.sim_uart = UART(self.uart_n, 115200)
         self.sim_uart.init(baudrate=115200, parity=None, stop=1, rx=self.rx, tx=self.tx)
-        print("SIM: Init\n")
 
     def send_uart(self, w):
         self.sim_uart.write(w)
@@ -34,6 +33,12 @@ class SIM7000E():
             data = self.sim_uart.read()
             print(data)
 
+    def return_uart(self):
+        if self.sim_uart.any() >= 1:
+            data = self.sim_uart.read()
+            return data
+        return None
+
     def send_sms(self, number, text):
         self.send_uart('AT+CMGF=1\r')
         self.send_uart('AT+CMGS="'+str(number)+'"\r')
@@ -44,7 +49,6 @@ class SIM7000E():
         self.send_uart('AT+CPOWD=1\r')
         sleep(2)
         self.pwr.value(0)
-        print("SIM: Power off\n")
 
     def power_on(self, echo=False):
         self.pwr.value(1)
@@ -60,16 +64,10 @@ class SIM7000E():
 
         self.send_uart('AT\r')
         self.send_uart('AT+CNMI=0,0,0,0\r') # Disable all SMS notifications
-        print("SIM: Power on\n")
 
     def connect_to_thingspeak(self, gsm_apn):
         self.send_uart('AT+CNMP=13\r') # GPRS/GSM mode
         self.send_uart('AT+NBSC=1\r') # Scrambling
-        # self.send_uart('AT+COPS?\r') # Signal quality
-        # sleep(4)
-        # self.send_uart('AT+CGATT?\r') # Attach check
-        # sleep(2)
-        # self.send_uart('AT+CSTT?\r') # Query available APN
         self.send_uart('AT+CSTT="' + gsm_apn + '"\r') # Set APN
         self.send_uart('AT+CIICR\r') # Bring up connection
         sleep(6)

@@ -44,7 +44,6 @@ class PMS7003():
         #utime.sleep(2)
         #self.pms_uart.read()  # Clear all trash from uart buffer
         ##END##
-        print("PMS: Init\n")
 
     def uart_deinit(self):
         self.pms_uart.deinit()
@@ -93,9 +92,8 @@ class PMS7003():
                 self.measures[c] = int.from_bytes(data[c*2+4 : c*2+6], "big")
             self.read_flag = True
             return True
-        else:
-            self.read_flag = False
-            return False
+        self.read_flag = False
+        return False
 
     def print_all_data(self):
         """Prints list of measures in console"""
@@ -115,20 +113,17 @@ class PMS7003():
     def pm1_0(self, cf=0):
         if cf == 0:
             return self.measures[DATA_4]
-        else:
-            return self.measures[DATA_1]
+        return self.measures[DATA_1]
 
     def pm2_5(self, cf=0):
         if cf == 0:
             return self.measures[DATA_5]
-        else:
-            return self.measures[DATA_2]
+        return self.measures[DATA_2]
 
     def pm10(self, cf=0):
         if cf == 0:
             return self.measures[DATA_6]
-        else:
-            return self.measures[DATA_3]
+        return self.measures[DATA_3]
 
     def num_of_par_0_3um_in_0_1L(self):
         return self.measures[DATA_7]
