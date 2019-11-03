@@ -6,154 +6,130 @@ try:
     import dht
     from time import sleep
     import machine
-    from machine import Timer, Pin, I2C, ADC
+    from machine import Pin, I2C, WDT
 except ImportError as i_err:
     print(i_err)
 
-#-----OBJECTS:-----
-sensor = pms7003.PMS7003()  # UART 1 (rx: 21, tx: 22)
-sim = sim7000e.SIM7000E()   # UART 2 (rx: 16, tx: 17)
-i2c = I2C(sda=Pin(25), scl=Pin(26), freq=10000)  # i2c for bmp280
+#---Debug helper:---
+DBG = True
 
-# OBJECTS FOR DHT22 AND BME280 ARE DECLARED AFTER POWERING SENSORS IN STARTUP SECTION, DUE TO SPECIFIC INIT METHODS IN THEIR LIBRARIES
+#---WDT:---
+wdt = WDT(timeout=150000)
 
-timer_0 = Timer(0)
-timer_1 = Timer(1)
-timer_2 = Timer(2)
-timer_3 = Timer(3)
-
-mosfet_pin = Pin(19, Pin.OUT)
-# bat = ADC(Pin(34))
-#--------------------
-
-#-----GLOBAL:-----
-send_flag = False
-pms_flag = False
-bme_flag = False
-dht_flag = False
-error_flag = False
-
+#---Fields list:---
 thingspeak_fields = [None, None, None, None, None, None, None, None]
+
+#---Error flag and list:---
+error_flag = False
 error_list = []
-#--------------------
 
-#-----TIMERS INTERRUPTS (for PMS7003):-----
-def handle_timer_1(timer_1):
-    """Send read request to PMS7003"""
-    sensor.uart_clear_trash()
-    sensor.send_command("read")
-    timer_2.init(mode=Timer.ONE_SHOT, period=15000, callback=handle_timer_2)
+#---Mosfet pin:---
+mosfet_pin = Pin(19, Pin.OUT)
 
-def handle_timer_2(timer_2):
-    """Read transmission from PMS7003 and sleep it"""
-    global thingspeak_fields
-    if sensor.read_transmission():
-        thingspeak_fields[3] = str(sensor.pm1_0())
-        thingspeak_fields[4] = str(sensor.pm2_5())
-        thingspeak_fields[5] = str(sensor.pm10())
-        thingspeak_fields[6] = str(sensor.num_of_par_0_3um_in_0_1L())
-        thingspeak_fields[7] = str(sensor.num_of_par_0_5um_in_0_1L())
-    else:
-        global error_flag
-        error_flag = True
-        error_list.append("PMS7003: Transmission Error")
-    sensor.send_command("sleep")
-    global pms_flag
-    pms_flag = True
-#--------------------
-
-#-----TIMERS INTERRUPTS (other):-----
-def handle_timer_0(timer_0):
-    """Read from BME280 sensor"""
-    global thingspeak_fields
-    try:
-        thingspeak_fields[0] = str(bme.temperature)
-        thingspeak_fields[1] = str(bme.pressure)
-    except Exception:
-        global error_flag
-        error_flag = True
-        error_list.append("BME280: Read Error")
-    global bme_flag
-    bme_flag = True
-
-def handle_timer_3(timer_3):
-    """Read from DHT22 sensor"""
-    global thingspeak_fields
-    try:
-        dht_s.measure()
-        thingspeak_fields[2] = str(dht_s.humidity())
-    except Exception:
-        global error_flag
-        error_flag = True
-        error_list.append("DHT22: Read Error")
-    global dht_flag
-    dht_flag = True
-#--------------------
-
-def mapValueFromTo(value, l_min, l_max, r_min, r_max):
-    """Maps value from one range to another"""
-    return r_min + (float(value - l_min) / float(l_max - l_min)* r_max - r_min)
-
-# def read_battery():
-#     """Return list with battery voltage and battery percentage"""
-#     bat.atten(ADC.ATTN_6DB)
-#     bat.width(ADC.WIDTH_10BIT)
-#     sleep(0.2)
-#     bat_adc_val = bat.read()
-#     bat_div_val = mapValueFromTo(bat_adc_val, 0, 1023, 0, 2)
-#     bat_val = mapValueFromTo(bat_div_val, 0, 2, 0, 4.2)
-#     bat_p = mapValueFromTo(bat_val, 2.5, 4.1, 0, 100)
-#     return [bat_val, bat_p]
-
-#-----STARTUP CODE:-----
-mosfet_pin.value(1)  # power on sensor and sim module
-sleep(2) # wait for everything to stabilize
-
+#---Init SIM7000E module:---
 try:
+    sim = sim7000e.SIM7000E()  # UART2(rx:16, tx:17)
+except Exception:
+    error_flag = True
+    error_list.append('"SIM7000E": "Init Error"')
+
+#---Init PMS7003 sensor:---
+try:
+    pms_sensor = pms7003.PMS7003()  # UART1(rx:21, tx:22)
+except Exception:
+    error_flag = True
+    error_list.append('"PMS7003": "Init Error"')
+
+#---Power on mosfet:---
+mosfet_pin.value(1)  # Power on mosfet
+sleep(0.5)
+if DBG:
+    print("MOSFET: ON")
+
+#---Init BMP280 sensor:---
+try:
+    i2c = I2C(sda=Pin(25), scl=Pin(26), freq=10000)  # i2c for bmp280
     bme = BME280.BME280(i2c=i2c) # bmp280 sensor (but using bme library)
 except Exception:
     error_flag = True
-    error_list.append("BME280: Connection Error")
+    error_list.append('"BME280": "Init Error"')
 
+#---Init DHT22 sensor:---
 try:
     dht_s = dht.DHT22(Pin(4))
 except Exception:
     error_flag = True
-    error_list.append("DHT22: Connection Error")
+    error_list.append('"DHT22": "Init Error"')
 
-sensor.send_command("wakeup")
-sensor.send_command("passive")
-timer_1.init(mode=Timer.ONE_SHOT, period=60000, callback=handle_timer_1)
+#---Start PMS sensor:---
+pms_sensor.send_command("wakeup")
+pms_sensor.send_command("passive")
 
-timer_0.init(mode=Timer.ONE_SHOT, period=10000, callback=handle_timer_0)
-timer_3.init(mode=Timer.ONE_SHOT, period=20000, callback=handle_timer_3)
+#---Wait 10 seconds:---
+sleep(10)
 
-sim.power_on(echo=True)
+#---Read from BMP280:---
+try:
+    thingspeak_fields[0] = str(bme.temperature)
+    thingspeak_fields[1] = str(bme.pressure)
+except Exception:
+    error_flag = True
+    error_list.append('"BME280": "Read Error"')
+
+#---Read from DHT22:---
+try:
+    dht_s.measure()
+    thingspeak_fields[2] = str(dht_s.humidity())
+except Exception:
+    error_flag = True
+    error_list.append('"DHT22": "Read Error"')
+
+#---Wait 30 seconds:---
+sleep(30)
+
+#---Read request PMS7003:---
+pms_sensor.uart_clear_trash()
+pms_sensor.send_command("read")
+
+#---Wait 15 seconds:---
+sleep(15)
+
+#---Read response from PMS7003:---
+if pms_sensor.read_transmission():
+    thingspeak_fields[3] = str(pms_sensor.pm1_0())
+    thingspeak_fields[4] = str(pms_sensor.pm2_5())
+    thingspeak_fields[5] = str(pms_sensor.pm10())
+    thingspeak_fields[6] = str(pms_sensor.num_of_par_0_3um_in_0_1L())
+    thingspeak_fields[7] = str(pms_sensor.num_of_par_0_5um_in_0_1L())
+else:
+    error_flag = True
+    error_list.append('"PMS7003": "Transmission Error"')
+
+#---Sleep PMS7003:---
+pms_sensor.send_command("sleep")
+
+#---Power on SIM7000E module, connect to ThingSpeak, send data and disconnect:---
+sim.power_on(echo=bool(DBG))
 sim.connect_to_thingspeak(gsm_apn='internet')
-#--------------------
+if DBG:
+    print(thingspeak_fields)
+sim.send_to_thinspeak(api_key='BY3E4OY6MMTCFJLR', fields=thingspeak_fields)
+sim.disconnect_from_thingspeak()
 
-#-----MAIN LOOP:-----
-while True:
-    sim.print_uart()
-    if pms_flag and bme_flag and dht_flag and not send_flag:
-        print(thingspeak_fields)
-        sim.send_to_thinspeak(api_key='BY3E4OY6MMTCFJLR', fields=thingspeak_fields)
-        sim.disconnect_from_thingspeak()
-        #--SMS SECTION:--
-        if error_flag:
-            txt = 'Errors:\n' + str(error_list)
-            # txt = 'Battery percentage: ' + str(battery_percentage) + ' [%]\n' + 'Battery voltage: ' + str(battery_voltage) + '[V]\n'
-            # if error_flag:
-            #     txt = txt + 'Errors:\n' + str(error_list)
-            # if battery_voltage <= 3.9:
-            #     txt = txt + 'Please, charge your battery.\n'
-            sim.send_sms('+48783846076', txt)
-        #----------------
-        sim.power_off()
-        send_flag = True
-    if pms_flag and bme_flag and dht_flag and send_flag:
-        mosfet_pin.value(0)
-        x = 3600000
-        print("SLEEP for " + str(x/1000) +  "seconds")
-        machine.deepsleep(x)
-#--------------------
+#---Send SMS with errors:---
+if error_flag:
+    txt = '"Errors:"\n' + str(error_list)
+    sim.send_sms('+48783846076', txt)
+
+#---Power off SIM7000E module:---
+sim.power_off()
+
+#---Power off mosfet:---
+mosfet_pin.value(0)
+
+#---ESP32 deepsleep:---
+wdt.feed()
+x = 3600000
+if DBG:
+    print("SLEEP for " + str(x/1000) +  "seconds")
+machine.deepsleep(x)

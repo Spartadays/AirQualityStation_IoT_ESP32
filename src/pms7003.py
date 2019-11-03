@@ -4,6 +4,9 @@ try:
 except ImportError as i_err:
     print(i_err)
 
+# Debug:
+DBG = True
+
 # COMMANDS:
 active = "active"
 passive = "passive"
@@ -39,11 +42,8 @@ class PMS7003():
         self.uart_flag = True
         self.read_flag = False
         self.measures = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        ##COMMENT CODE BELOW IF YOU DO IT IN YOUR SCRIPT AFTER INITIALIZATION:##
-        #self.send_command(passive)
-        #utime.sleep(2)
-        #self.pms_uart.read()  # Clear all trash from uart buffer
-        ##END##
+        if DBG:
+            print("PMS: Init")
 
     def uart_deinit(self):
         self.pms_uart.deinit()
@@ -62,7 +62,8 @@ class PMS7003():
         if self.pms_uart.any() >= 1:
             data = self.pms_uart.read(32)
         else:
-            print("Empty uart")
+            if DBG:
+                print("Empty uart")
             self.read_flag = False
             return False
 
@@ -70,13 +71,15 @@ class PMS7003():
             start_bits_flag = True
         else:
             start_bits_flag = False
-            print('Start Bits ERROR')
+            if DBG:
+                print('Start Bits ERROR')
 
         if int.from_bytes(data[2:4], "big") == 28:
             data_length_flag = True
         else:
             data_length_flag = False
-            print("Transmission Length ERROR")
+            if DBG:
+                print("Transmission Length ERROR")
 
         check_code = int.from_bytes(data[30:32], "big")
         my_sum = sum(data[:30])
@@ -85,7 +88,8 @@ class PMS7003():
             check_code_flag = True
         else:
             check_code_flag = False
-            print("Check Sum ERROR")
+            if DBG:
+                print("Check Sum ERROR")
 
         if start_bits_flag is True and data_length_flag is True and check_code_flag is True:
             for c in range(len(self.measures)):
@@ -142,12 +146,16 @@ class PMS7003():
             lrc_h = 0x01
             lrc_l = 0x71
         elif command == sleep:
+            if DBG:
+                print("PMS: sleep")
             cmd = 0xe4
             data_h = 0x00
             data_l = 0x00
             lrc_h = 0x01
             lrc_l = 0x73
         elif command == wakeup:
+            if DBG:
+                print("PMS: wakeup")
             cmd = 0xe4
             data_h = 0x00
             data_l = 0x01
@@ -160,6 +168,8 @@ class PMS7003():
             lrc_h = 0x01
             lrc_l = 0x71
         elif command == passive:
+            if DBG:
+                print("PMS: passive")
             cmd = 0xe1
             data_h = 0x00
             data_l = 0x00
