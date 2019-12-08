@@ -113,7 +113,7 @@ sim.power_on(echo=bool(DBG))
 sim.connect_to_thingspeak(gsm_apn='internet')
 if DBG:
     print(thingspeak_fields)
-sim.send_to_thinspeak(api_key='BY3E4OY6MMTCFJLR', fields=thingspeak_fields)
+sim.send_to_thingspeak(api_key='BY3E4OY6MMTCFJLR', fields=thingspeak_fields)
 sim.disconnect_from_thingspeak()
 
 #---Send SMS with errors:---

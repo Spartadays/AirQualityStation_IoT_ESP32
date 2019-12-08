@@ -91,7 +91,18 @@ class SIM7000E():
         self.send_uart('AT+CIPSTART="TCP","api.thingspeak.com",80\r') # Start up connection
         sleep(4)
 
-    def send_to_thinspeak(self, api_key, fields):
+    def connect_to(self, gsm_apn, protocol, address, port):
+        """Connect to some server using your APN, protocol type, address and port"""
+        self.send_uart('AT+CNMP=13\r') # GPRS/GSM mode
+        self.send_uart('AT+NBSC=1\r') # Scrambling
+        self.send_uart('AT+CSTT="' + gsm_apn + '"\r') # Set APN
+        self.send_uart('AT+CIICR\r') # Bring up connection
+        sleep(6)
+        self.send_uart('AT+CIFSR\r') # Get local address
+        self.send_uart('AT+CIPSTART="'+protocol+'","'+address+'",'+port+'\r') # Start up connection
+        sleep(4)
+
+    def send_to_thingspeak(self, api_key, fields):
         """Send data array[8] to ThingSpeak (require your API)"""
         self.send_uart('AT+CIPSEND\r') # Send data
         self.send_uart('GET /update?api_key='+api_key+
