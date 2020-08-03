@@ -1,11 +1,12 @@
 # pms7003.py
 try:
-    from machine import UART
+    from machine import UART, Pin
 except ImportError as i_err:
     print(i_err)
 
 # Debug:
-DBG = True
+dbg_pin = Pin(23, Pin.IN, Pin.PULL_UP)
+DBG = bool(dbg_pin.value() == 0)
 
 # COMMANDS:
 active = "active"

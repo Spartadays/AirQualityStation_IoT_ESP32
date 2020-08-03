@@ -6,7 +6,8 @@ except ImportError as i_err:
     print(i_err)
 
 # Debug:
-DBG = True
+dbg_pin = Pin(23, Pin.IN, Pin.PULL_UP)
+DBG = bool(dbg_pin.value() == 0)
 
 class SIM7000E():
     """SIM7000E HAT module class"""

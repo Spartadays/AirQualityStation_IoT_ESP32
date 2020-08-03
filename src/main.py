@@ -11,7 +11,8 @@ except ImportError as i_err:
     print(i_err)
 
 #---Debug helper:---
-DBG = True
+dbg_pin = Pin(23, Pin.IN, Pin.PULL_UP)
+DBG = bool(dbg_pin.value() == 0)
 
 #---WDT:---
 wdt = WDT(timeout=150000)
@@ -131,5 +132,7 @@ mosfet_pin.value(0)
 wdt.feed()
 x = 3600000
 if DBG:
-    print("SLEEP for " + str(x/1000) +  "seconds")
-machine.deepsleep(x)
+    print("SLEEP for " + str(3) +  "seconds")
+    machine.deepsleep(3000)
+else:
+    machine.deepsleep(x)
